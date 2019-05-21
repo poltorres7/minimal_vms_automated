@@ -1,0 +1,8 @@
+# Files to ignore
+# ----------
+*.retry
+*.qcow2
+
+# Folders to ignore
+# ----------
+keys

@@ -1,0 +1,8 @@
+---
+
+- name: "KVM lab installation"
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - { role: requirements }
+    - { role: installation, become: true }

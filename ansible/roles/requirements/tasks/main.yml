@@ -1,0 +1,10 @@
+---
+# tasks file for requirements
+  - name: "Validate requierements"
+    shell: "grep -E 'svm|vmx' /proc/cpuinfo"
+    register: cpuinfo_var
+
+  - name: "Testing virtualization"
+    fail:
+      msg: "Your computer doesn't support virtualization"
+    when: ("vmx" not in cpuinfo_var.stdout) and ("svm" not in cpuinfo_var.stdout)

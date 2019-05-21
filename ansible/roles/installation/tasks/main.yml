@@ -1,0 +1,11 @@
+---
+# tasks file for installation
+- name: "Update system"
+  dnf:
+    name: "*"
+    state: latest
+
+- name: "Installing needed packages"
+  dnf:
+    name: "{{ packages_list }}"
+    state: present
