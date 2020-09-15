@@ -20,11 +20,11 @@ root_passwd="${4:-redhat}" # Optional
 img_path="${5:-/var/lib/libvirt/images}" # Optional
 
 mydate=`date "+%d-%H%M"`
-vm_name_ftm="vm-${vm_name}-${mydate}.qcow2"
+vm_name_ftm="${vm_name}-vm-${mydate}.qcow2"
 
 main () {
-  # Copying the image
-  echo "	Coping image"
+  # Copying image
+  echo "	Copying image"
   sudo cp "${source_img}" "${img_path}/${vm_name_ftm}"
   sudo ls -l "${img_path}/${vm_name_ftm}"
 
@@ -38,6 +38,7 @@ conf_vm () {
   sudo virt-customize -a "${img_path}/${vm_name_ftm}" \
 	--hostname "${vm_name}.lodbrok.lab" --root "password:${root_passwd}" \
 	--ssh-inject "root:file:${keys_path}" --uninstall cloud-init \
+  --install "vim" \
 	--selinux-relabel
 } # End of function conf_vm
 
@@ -47,7 +48,7 @@ import_vm () {
 
   date_with_time=`date "+%y%m%d-%H%M%S"`
 
-  sudo virt-install --name "vm-${vm_name}-${date_with_time}" --memory 1024 \
+  sudo virt-install --name "${vm_name}-vm-${date_with_time}" --memory 1024 \
 	--vcpus 1 --disk "${img_path}/${vm_name_ftm}" \
        	--import --os-variant fedora29 --noautoconsole
 }
