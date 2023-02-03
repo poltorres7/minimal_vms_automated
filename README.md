@@ -31,9 +31,37 @@ How to use
 -------
 Example:
 ```bash
-./create-new-vm.sh <vm_name> <path_to_qcow2_image> <root_passwd> <keys_path> <img_path>
+./create-new-vm.sh <vm_name> <path_to_qcow2_image> <keys_path> <img_path> <root_passwd>
 ```
 
 Clean up
 ------
 If you used the default value of ```img_path``` all the images are stored there. If you want to delete the disk of a vm you should deleted from there. **Be careful to don't delete other image in use**.
+
+
+
+How to increase disk size
+-----
+
+```bash
+  188  cp Fedora-Cloud-Base-34-1-40.2.x86_64.qcow2 Fedora-Cloud-Base-34-1-40.2.x86_64_original.qcow2
+  189  virt-resize --expand /dev/vda1 Fedora-Cloud-Base-34-1-40.2.x86_64_original.qcow2 Fedora-Cloud-Base-34-1-40.2.x86_64.qcow2
+  190  export LIBGUESTFS_BACKEND=direct
+  191  virt-resize --expand /dev/vda1 Fedora-Cloud-Base-34-1-40.2.x86_64_original.qcow2 Fedora-Cloud-Base-34-1-40.2.x86_64.qcow2
+  192  qemu-img info Fedora-Cloud-Base-34-1-40.2.x86_64.qcow2 
+  193  virt-filesystems –long -h –all -a Fedora-Cloud-Base-34-1-40.2.x86_64_original.qcow2
+  194  qemu-img info Fedora-Cloud-Base-34-1-40.2.x86_64.qcow2 
+  195  virt-filesystems –long -h –all -a Fedora-Cloud-Base-34-1-40.2.x86_64.qcow2
+```
+
+
+KVM virsh commands
+------
+
+```bash
+# List IP addresses from instances
+sudo virsh net-dhcp-leases default
+
+# List default network in the host
+sudo virsh net-info default
+```

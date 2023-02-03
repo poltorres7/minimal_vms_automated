@@ -1,3 +1,3 @@
 ---
 # vars file for installation
-packages_list: ["qemu-kvm","virt-manager","virt-viewer", "libguestfs-tools", "virt-install", "genisoimage"]
+packages_list: ["qemu-kvm","virt-manager","virt-viewer", "libguestfs-tools", "virt-install", "genisoimage", "bridge-utils", "libvirt", "virt-install"]

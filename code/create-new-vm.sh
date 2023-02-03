@@ -7,7 +7,7 @@
 # Execute this script as root. To have the correct permisions to
 # generate the files in the specific path
 # Example:
-# $./create-new-vm.sh <vm_name> <path_to_qcow2_image> <root_passwd> <keys_path> <img_path>
+# $./create-new-vm.sh <vm_name> <path_to_qcow2_image> <keys_path> <root_passwd> <memory> <cpu> <img_path>
 #
 
 set -euo pipefail
@@ -17,7 +17,9 @@ vm_name="$1"     # Name to virtual machine
 source_img="$2"  # Path of the img to use
 keys_path="$3"
 root_passwd="${4:-redhat}" # Optional
-img_path="${5:-/var/lib/libvirt/images}" # Optional
+memory="${5:-1024}"
+cpu="${6:-1}"
+img_path="${7:-/var/lib/libvirt/images}" # Optional
 
 mydate=`date "+%d-%H%M"`
 vm_name_ftm="${vm_name}-vm-${mydate}.qcow2"
@@ -38,8 +40,8 @@ conf_vm () {
   sudo virt-customize -a "${img_path}/${vm_name_ftm}" \
 	--hostname "${vm_name}.lodbrok.lab" --root "password:${root_passwd}" \
 	--ssh-inject "root:file:${keys_path}" --uninstall cloud-init \
-  --install "vim" \
 	--selinux-relabel
+#  --install "vim" \
 } # End of function conf_vm
 
 import_vm () {
@@ -48,8 +50,8 @@ import_vm () {
 
   date_with_time=`date "+%y%m%d-%H%M%S"`
 
-  sudo virt-install --name "${vm_name}-vm-${date_with_time}" --memory 1024 \
-	--vcpus 1 --disk "${img_path}/${vm_name_ftm}" \
+  sudo virt-install --name "${vm_name}-vm" --memory ${memory} \
+	--vcpus ${cpu} --disk "${img_path}/${vm_name_ftm}" --disk size=20 \
        	--import --os-variant fedora29 --noautoconsole
 }
 
