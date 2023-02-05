@@ -32,6 +32,10 @@ How to use
 Example:
 ```bash
 ./create-new-vm.sh <vm_name> <path_to_qcow2_image> <keys_path> <img_path> <root_passwd>
+
+./create-new-vm.sh ubuntu-prometheus ../images/ubuntu/jammy-server.qcow2 keys/vm-key
+./create-new-vm.sh ubuntu-prometheus ../images/ubuntu/ubuntu-22.04-serveramd64.qcow2 keys/vm-key
+./create-new-vm.sh ubuntu-prometheus ../images/ubuntu/bionic-server.qcow2 keys/vm-key
 ```
 
 Clean up
@@ -59,9 +63,97 @@ KVM virsh commands
 ------
 
 ```bash
+### Option 1
 # List IP addresses from instances
 sudo virsh net-dhcp-leases default
 
 # List default network in the host
 sudo virsh net-info default
+
+### Option 2
+# list vms
+sudo virsh list
+
+sudo virsh domifaddr ubuntu-prometheus-vm
 ```
+
+
+Download more images
+------
+
+- [OpenStack Get more images](https://docs.openstack.org/image-guide/obtain-images.html)
+- [Convert img to qcow2 qemu](https://docs.openstack.org/image-guide/convert-images.html)
+
+```bash
+qemu-img convert -f img -O qcow2 bionic.img bionic.qcow2
+
+sudo qemu-img convert \
+  -f qcow2 \
+  -O qcow2 \
+  bionic-server-cloudimg-amd64.qcow2 \
+  bionic-server.qcow2
+
+
+wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+
+qemu-img create -F qcow2 -b focal-server-cloudimg-amd64.img -f qcow2 vm01.qcow2 10G
+
+export MAC_ADDR=$(printf '52:54:00:%02x:%02x:%02x' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)))
+
+export INTERFACE=eth01
+
+export IP_ADDR=192.168.122.101
+
+cat >network-config <<EOF
+ethernets:
+    $INTERFACE:
+        addresses: 
+        - $IP_ADDR/24
+        dhcp4: false
+        gateway4: 192.168.122.1
+        match:
+            macaddress: $MAC_ADDR
+        nameservers:
+            addresses: 
+            - 1.1.1.1
+            - 8.8.8.8
+        set-name: $INTERFACE
+version: 2
+EOF
+
+cat >user-data <<EOF
+#cloud-config
+hostname: vm01
+manage_etc_hosts: true
+users:
+  - name: vmadm
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    home: /home/vmadm
+    shell: /bin/bash
+    lock_passwd: false
+ssh_pwauth: true
+disable_root: false
+chpasswd:
+  list: |
+    vmadm:vmadm
+  expire: false
+EOF
+
+touch meta-data
+
+cloud-localds -v --network-config=network-config vm01-seed.qcow2 user-data meta-data
+
+virt-install --connect qemu:///system \
+  --virt-type kvm \
+  --name vm01 \
+  --ram 1024 --vcpus=2 \
+  --os-type linux --os-variant ubuntu20.04 \
+  --disk path=vm01.qcow2,device=disk \
+  --disk path=vm01-seed.qcow2,device=disk \
+  --import --network network=default,model=virtio,mac=$MAC_ADDR --noautoconsole
+```
+
+[ubuntu vm on kvm](https://yping88.medium.com/use-ubuntu-server-20-04-cloud-image-to-create-a-kvm-virtual-machine-with-fixed-network-properties-62ecae025f6c)
+
+[qemu reference](https://blog.programster.org/create-ubuntu-22-kvm-guest-from-cloud-image)
